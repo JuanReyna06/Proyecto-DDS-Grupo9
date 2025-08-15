@@ -1,0 +1,39 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "express": "^4.18.2",
+    "nodemon": "^2.0.22",
+    "sequelize": "^6.31.1",
+    "sqlite3": "^5.1.6"
+  },
+  "name": "grupo-3k2-9",
+  "description": "To make it easy for you to get started with GitLab, here's a list of recommended next steps.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": "cross-env NODE_ENV=test jest --testTimeout=10000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "supertest": "^6.3.3"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "jest": {
+    "testEviroment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
+  },
+  "eslintConfig": {
+    "env": {
+      "jest": true
+    }
+  }
+}

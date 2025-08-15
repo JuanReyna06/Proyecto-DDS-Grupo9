@@ -1,0 +1,290 @@
+import React, { useState, useEffect } from 'react';
+import '../../App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Table, Button, Container, Modal, ModalBody, ModalHeader, FormGroup, ModalFooter } from 'reactstrap';
+import { buscarArticulo, insertarArticulo, eliminarArticulo, actualizarArticulo, buscarArticuloPorNombre } from '../../services/articulos.service';
+
+function Articulo() {
+  const [lista, setLista] = useState([]);
+  const [modalInsertar, setModalInsertar] = useState(false);
+  const [modalEditar, setModalEditar] = useState(false);
+  const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [nuevoArticulo, setNuevoArticulo] = useState({
+    IdArticulo: '',
+    Nombre: '',
+    FechaAlta: '',
+    Stock: ''
+  });
+  const [articuloEditado, setArticuloEditado] = useState(null);
+
+  useEffect(() => {
+    fetchArticulos();
+  }, []);
+
+  const fetchArticulos = () => {
+    buscarArticulo()
+      .then((data) => setLista(data))
+      .catch((error) => {
+        console.log('Error al obtener la lista de artículos:', error);
+      });
+  };
+
+  const toggleModalInsertar = () => {
+    setModalInsertar(!modalInsertar);
+  };
+
+  const toggleModalEditar = (articulo) => {
+    setArticuloEditado(articulo);
+    setModalEditar(!modalEditar);
+  };
+
+  const handleInputChange = (e) => {
+    setNuevoArticulo({
+      ...nuevoArticulo,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleEditInputChange = (e) => {
+    setArticuloEditado({
+      ...articuloEditado,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    insertarArticulo(nuevoArticulo)
+      .then(() => {
+        fetchArticulos();
+        setNuevoArticulo({
+          IdArticulo: '',
+          Nombre: '',
+          FechaAlta: '',
+          Stock: ''
+        });
+        setModalInsertar(false);
+      })
+      .catch((error) => {
+        console.log('Error al insertar el artículo:', error);
+      });
+  };
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    // Realizar la actualización del artículo llamando a la función de servicio correspondiente
+    // Se asume que tienes una función llamada actualizarArticulo en el servicio de artículos
+    actualizarArticulo(articuloEditado)
+      .then(() => {
+        fetchArticulos();
+        setArticuloEditado(null);
+        setModalEditar(false);
+      })
+      .catch((error) => {
+        console.log('Error al actualizar el artículo:', error);
+      });
+  };
+
+  const deleteArticulo = (id) => {
+    eliminarArticulo(id)
+      .then(() => {
+        fetchArticulos();
+      })
+      .catch((error) => {
+        console.log('Error al eliminar el artículo:', error);
+      });
+  };
+
+  const buscarPorNombre = () => {
+    const resultadosBusqueda = []; // Initialize as an empty array
+    buscarArticuloPorNombre(terminoBusqueda)
+    .then((data) => {
+      resultadosBusqueda = data; // Update the resultadosBusqueda variable
+      setLista(resultadosBusqueda); // Update the state with the search results
+    })
+    .catch((error) => {
+      console.log('Error al buscar artículos por nombre:', error);
+    });
+  };
+  return (
+    <div>
+      <Container>
+        <br />
+        <Button color="success" onClick={toggleModalInsertar}>
+          Insertar nuevo artículo
+        </Button>
+        <br />
+        <br />
+        <FormGroup>
+            <label>Buscar por nombre:</label>
+            <div className="d-flex">
+              <input
+                type="text"
+                value={terminoBusqueda}
+                onChange={(e) => setTerminoBusqueda(e.target.value)}
+                className="form-control"
+                style={{ textTransform: "none" }}
+              />
+              <Button color="primary" onClick={buscarPorNombre}>Buscar</Button>
+            </div>
+        </FormGroup>
+        <br></br>
+        <Table>
+          <thead>
+            <tr>
+              <th>IdArticulo</th>
+              <th>Nombre de Articulo</th>
+              <th>Fecha de Alta</th>
+              <th>Stock</th>
+              <th></th>
+              <th >Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            { lista.map((e) => (
+              <tr key={e.IdArticulo}>
+                <td>{e.IdArticulo}</td>
+                <td>{e.Nombre}</td>
+                <td>{e.FechaAlta}</td>
+                <td>{e.Stock}</td>
+                
+                <td>
+                  <Button color="primary" onClick={() => toggleModalEditar(e)}>Editar</Button>
+                </td>
+                <td>
+                  <Button color="danger" onClick={() => deleteArticulo(e.IdArticulo)}>Eliminar</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </Container>
+
+      {/* Modal de inserción */}
+      <Modal isOpen={modalInsertar} toggle={toggleModalInsertar}>
+        <ModalHeader toggle={toggleModalInsertar}>Insertar nuevo artículo</ModalHeader>
+        <ModalBody>
+          <form onSubmit={handleSubmit}>
+            <FormGroup>
+              <label>ID del Artículo</label>
+              <input
+                type="text"
+                name="IdArticulo"
+                value={nuevoArticulo.IdArticulo}
+                onChange={handleInputChange}
+                className="form-control"
+                style={{ textTransform: "none" }}
+              />
+            </FormGroup>
+            <FormGroup>
+              <label>Nombre del Artículo</label>
+              <input
+                type="text"
+                name="Nombre"
+                value={nuevoArticulo.Nombre}
+                onChange={handleInputChange}
+                className="form-control"
+                style={{ textTransform: "none" }}
+              />
+            </FormGroup>
+            <FormGroup>
+              <label>Fecha de Alta</label>
+              <input
+                type="date"
+                name="FechaAlta"
+                value={nuevoArticulo.FechaAlta}
+                onChange={handleInputChange}
+                className="form-control"
+                style={{ textTransform: "none" }}
+              />
+            </FormGroup>
+            <FormGroup>
+              <label>Stock</label>
+              <input
+                type="text"
+                name="Stock"
+                value={nuevoArticulo.Stock}
+                onChange={handleInputChange}
+                className="form-control"
+                style={{ textTransform: "none" }}
+              />
+            </FormGroup>
+            <ModalFooter>
+              <Button color="primary" type="submit">
+                Insertar
+              </Button>{" "}
+              <Button color="secondary" onClick={toggleModalInsertar}>
+                Cancelar
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalBody>
+      </Modal>
+
+      {/* Modal de edición */}
+      <Modal isOpen={modalEditar} toggle={toggleModalEditar}>
+        <ModalHeader toggle={toggleModalEditar}>Editar artículo</ModalHeader>
+        {articuloEditado && (
+          <ModalBody>
+            <form onSubmit={handleEditSubmit}>
+              <FormGroup>
+                <label>ID del Artículo</label>
+                <input
+                  type="text"
+                  name="IdArticulo"
+                  value={articuloEditado.IdArticulo}
+                  onChange={handleEditInputChange}
+                  className="form-control"
+                  style={{ textTransform: "none" }}
+                />
+              </FormGroup>
+              <FormGroup>
+                <label>Nombre del Artículo</label>
+                <input
+                  type="text"
+                  name="Nombre"
+                  value={articuloEditado.Nombre}
+                  onChange={handleEditInputChange}
+                  className="form-control"
+                  style={{ textTransform: "none" }}
+                />
+              </FormGroup>
+              <FormGroup>
+                <label>Fecha de Alta</label>
+                <input
+                  type="date"
+                  name="FechaAlta"
+                  value={articuloEditado.FechaAlta}
+                  onChange={handleEditInputChange}
+                  className="form-control"
+                  style={{ textTransform: "none" }}
+                />
+              </FormGroup>
+              <FormGroup>
+                <label>Stock</label>
+                <input
+                  type="text"
+                  name="Stock"
+                  value={articuloEditado.Stock}
+                  onChange={handleEditInputChange}
+                  className="form-control"
+                  style={{ textTransform: "none" }}
+                />
+              </FormGroup>
+              <ModalFooter>
+                <Button color="primary" type="submit">
+                  Actualizar
+                </Button>{" "}
+                <Button color="secondary" onClick={toggleModalEditar}>
+                  Cancelar
+                </Button>
+              </ModalFooter>
+            </form>
+          </ModalBody>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+export { Articulo };
